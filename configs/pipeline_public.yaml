@@ -1,0 +1,90 @@
+project: legalir-vietnamese-legal-retrieval
+verified_private_benchmark_score: 0.9428
+
+data:
+  raw_labelled_queries: 7000
+  corpus_documents: 8532
+  labelled_training_queries: 6985
+  fixed_labelled_evaluation_queries: 2155
+  pre_collision_encoder_training_queries: 4830
+  removed_normalized_question_collisions: 7
+  clean_encoder_finetuning_queries: 4823
+  prepared_corpus_chunks: 596062
+  clean_subset_selection_rule: exclude_fixed_evaluation_qids_then_remove_exact_normalized_question_collisions
+  chunking:
+    target_tokens: 500
+    token_window_overlap: 100
+    strategies: [legal_hierarchy, numbered_sections, paragraph_fallback]
+    dense_text_includes_context_header: true
+    bm25_text_excludes_synthetic_header: true
+
+encoder_training:
+  positive_passages_per_query: 1
+  explicit_hard_negatives_per_query: 7
+  negative_mining_sources: [harrier_base, bge_m3_base]
+  negative_mining_rrf_k: 60
+  negative_mining_top_chunks_per_model: 256
+  epochs: 1
+  seed: 20260904
+
+evaluation:
+  calibration_queries: 512
+  calibration_gold_documents: 712
+  private_queries: 2080
+  folds: 5
+  primary_metric: recall_at_5
+  safety_metrics:
+    - weighted_recall_at_5
+    - zero_hit_queries
+    - per_fold_delta
+    - bootstrap_delta
+
+retrieval:
+  candidate_depth: 150
+  signal_order:
+    - harrier_ft
+    - bge_ft
+    - legal_embedding_ft
+    - lexical_memory
+    - semantic_memory
+    - corpus_lexical
+    - bge_prototype
+    - label_prior
+    - legal_dense
+    - dek21_direct
+    - citation_graph
+  rrf_k: 3
+  weights: [1.500, 0.668, 0.632, 0.501, 0.093, 0.747, 0.299, 0.186, 0.620, 0.443, 0.317]
+  limits: [30, 50, 30, 50, 50, 100, 100, 50, 20, 50, 100]
+
+selector:
+  stable_depth: 60
+  hard_negative_depth: 20
+  output_depth: 5
+  model_family: lightgbm_lambdamart
+
+reranker:
+  family: jina_listwise
+  views:
+    - lexical_section_1
+    - lexical_section_2
+    - lexical_section_3
+    - dense_segment_1
+    - dense_segment_2
+    - dense_segment_3
+  private_score_rows: 748800
+
+guardrails:
+  preserve_top20_membership: true
+  preserve_top30_membership: true
+  preserve_top60_membership: true
+  reject_negative_outer_fold: true
+  reject_weighted_recall_regression: true
+  private_labels_allowed: false
+
+verified_offline:
+  stable_top5_hits: 466
+  stable_top20_hits: 613
+  hard_negative_top20_hits: 616
+  constrained_score_top5_hits: 475
+  final_top60_hits: 686

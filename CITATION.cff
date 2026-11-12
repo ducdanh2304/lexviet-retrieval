@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+title: "LegalIR: High-Recall Vietnamese Legal Retrieval"
+message: "If this repository helps your work, please cite it."
+type: software
+authors:
+  - family-names: "Danh"
+    given-names: ""
+year: 2026
+license: MIT
+abstract: >-
+  An evidence-driven multi-stage retrieval and reranking pipeline for
+  Vietnamese legal information retrieval.
