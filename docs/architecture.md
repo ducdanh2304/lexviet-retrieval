@@ -1,77 +1,79 @@
-# System architecture
+# Architecture
 
-This is a compact architecture summary. The evidence-backed implementation
-walkthrough, including fine-tuning tuple construction and exact model settings,
-is in [full_pipeline.md](full_pipeline.md). The FastAPI demo is not part of the
-full research ranking path.
+This document separates model development, research batch inference, stored
+artifacts, and the small public API demo. Only the last path is directly
+runnable from this repository without private inputs.
 
-## 1. Candidate generation
+```mermaid
+flowchart LR
+  classDef artifact fill:#fff4d6,stroke:#8a6d1d
+  classDef model fill:#e8f0fe,stroke:#3455a4
+  classDef private fill:#fdeaea,stroke:#a33
+  classDef public fill:#e7f7ed,stroke:#287a46
 
-The first stage maximizes coverage rather than precision. Eleven heterogeneous
-rankings are fused by weighted reciprocal-rank fusion into a Top-150 union.
-Each source has its own cutoff so weak long tails do not dominate the pool.
+  subgraph train[Offline training]
+    Q[Labelled questions]:::private --> SPLIT[Clean split + exact-collision removal]
+    CORPUS[Legal corpus]:::private --> CHUNK[Hierarchy-aware chunker]
+    SPLIT --> TUPLES[1 positive + 7 hard negatives]
+    CHUNK --> TUPLES
+    TUPLES --> ENC[Fine-tune Harrier, Vietnamese Legal Embedding, BGE-M3]:::model
+    SPLIT --> OOF[Five-fold OOF feature construction]
+    OOF --> LTR[Train selector, LambdaMART, calibrated policies]:::model
+    ENC --> CKPT[(Checkpoints)]:::artifact
+    CHUNK --> INDEX[(Chunk IDs, vectors, indexes)]:::artifact
+    LTR --> POLICY[(Frozen fold models + policies)]:::artifact
+  end
 
-The frozen RRF score for document `d` is:
+  subgraph batch[Research batch inference]
+    QUESTION[Question] --> SIGNALS[11 independent rankings]
+    CKPT --> SIGNALS
+    INDEX --> SIGNALS
+    SIGNALS --> RRF[Weighted RRF, Top-150]
+    RRF --> SELECT[Learned Top-60 selector]
+    POLICY --> SELECT
+    SELECT --> SIX[3 lexical sections + 3 dense windows]
+    SIX --> JINA[Jina listwise scoring]:::model
+    JINA --> CACHE[(SQLite passage + score cache)]:::artifact
+    CACHE --> HARD[Calibrated hard-negative Top-20]
+    HARD --> FINAL[Constrained-score Top-5]
+    FINAL --> EXACT[Exact normalized-query protection]
+    EXACT --> OUTPUT[Five document IDs]
+  end
 
-```text
-score(d) = Σ_i weight_i / (k + rank_i(d))
+  subgraph demo[Public demo]
+    DEMO[(8 synthetic documents)]:::public --> BM25[BM25 retrieval]:::public
+    BM25 --> FASTAPI[FastAPI /v1/retrieve]:::public
+    RRFLIB[Tested RRF utility]:::public --> FUSE[FastAPI /v1/fuse]:::public
+  end
 ```
 
-where a missing document contributes zero for that source.
+## Ranking funnel
 
-## 2. Learned Top-60 selector
+1. **Candidate generation:** eleven heterogeneous rankings produce complementary
+   evidence. Weighted reciprocal-rank fusion forms a Top-150 union.
+2. **Top-60 selection:** a cross-fitted learned selector concentrates expensive
+   scoring on candidates near the decision boundary.
+3. **Multi-view scoring:** long documents are represented by three lexical
+   sections and three dense query-conditioned windows.
+4. **Top-20 calibration:** relevance probabilities and stable-rank evidence
+   reorder only the protected Top-30 boundary.
+5. **Top-5 decision:** a constrained router chooses five documents from the
+   frozen Hard Top-20; deeper membership cannot change.
+6. **Deterministic protection:** exact normalized matches may protect known
+   relevant documents. Semantic similarity alone is insufficient.
 
-A learned selector reduces Top-150 to Top-60 using lexical, dense, section,
-full-document, candidate-stage, and rank features. A second ranker reorders the
-selected candidates. Cross-fitted train selections prevent the final ranker
-from learning against its own in-sample decisions.
+## Artifact contract
 
-## 3. Multi-view document representation
+Long-running stages exchange immutable artifacts rather than hidden process
+state. Each serious output records its schema, upstream path/hash, row or query
+count, label-usage flag, and policy configuration. SQLite separates materialized
+passages from model scores so reranking can resume and shards can be merged with
+count and hash checks.
 
-Long legal documents are not truncated to one arbitrary prefix. The pipeline
-scores three lexical sections and three dense query-conditioned segments. This
-raises the chance that the relevant provision survives document length and
-boilerplate.
+## Public code boundary
 
-## 4. Jina listwise reranking
-
-The listwise reranker scores all 60 candidates for each of six views. Passage
-materialization and model scores are stored separately in SQLite, enabling:
-
-- resume after interruption;
-- query sharding across machines;
-- deterministic merge validation;
-- reuse by later audits without another GPU pass.
-
-## 5. Hard-negative Top-20
-
-The hard-negative stage learns which candidates should remain in the decision
-boundary. It improves Top-20 coverage from 613 to 616 relevant documents while
-leaving Top-30 and Top-60 coverage unchanged.
-
-## 6. Constrained Top-5 selection
-
-The score router selects five documents only inside the frozen Hard Top-20.
-This improves Top-5 from 466 to 475 relevant documents. The policy is rejected
-if it changes the protected candidate universe or produces unsafe fold-level
-regressions.
-
-## 7. Exact-overlap protection
-
-An exact normalized-query match against previously labeled, legally reusable
-examples is handled as a deterministic final rule. Semantic-neighbor transfer
-was audited separately and was not trusted as equivalent to exact matching.
-
-## 8. Artifact lineage
-
-Every final artifact records:
-
-- source paths and schema;
-- SHA-256 identities;
-- number of queries/documents/rows;
-- whether labels were used;
-- policy configuration;
-- upstream artifact identities.
-
-This makes the pipeline auditable even when full model weights are stored in a
-separate private artifact registry.
+The repository includes implementations and tests for RRF, constrained Top-5,
+metrics, membership invariants, submission validation, and the synthetic API.
+The private training and inference scripts are documented from preserved source
+reports but are not repackaged here because their required inputs cannot be
+distributed.

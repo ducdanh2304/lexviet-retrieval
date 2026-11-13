@@ -276,10 +276,11 @@ intervals. Private inference was label-free except for the explicit,
 pre-audited exact-overlap memory rule. Artifacts carried row counts, schemas,
 upstream paths, label-usage flags and SHA-256 identities.
 
-The only private-benchmark result claimed by this repository is **0.9428** on
-the 2,080-question held-out set. The benchmark metric averages per-question
-Recall; Precision is the secondary tie-break metric. Predictions are capped at
-five unique document IDs per question.
+The recorded private leaderboard outcome was **0.9428** on the 2,080-question
+held-out set. It is not independently reproducible from this public repository
+because the evaluator and labels are unavailable. The benchmark metric averages
+per-question Recall; Precision is the secondary tie-break metric. Predictions
+are capped at five unique document IDs per question.
 
 ## Evidence still needed
 

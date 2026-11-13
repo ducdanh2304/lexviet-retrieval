@@ -1,64 +1,57 @@
-# Experiment and ablation log
+# Experiments and ablations
 
-All values below come from the fixed 512-query calibration audit unless marked
-as private-benchmark results.
+Unless stated otherwise, results use the fixed five-fold out-of-fold CAL512
+audit: 512 questions and 712 relevant question-document pairs. The aggregate
+numbers below were rechecked against the hashed private reports listed in
+[`../artifacts/cal512_metrics.json`](../artifacts/cal512_metrics.json).
 
-## Successful components
+## Ranking funnel
 
-| Experiment | Recall@5 hits | Delta | Weighted R@5 | Decision |
+| Variant | R@5 hits | Weighted R@5 | R@20 hits | Decision |
 |---|---:|---:|---:|---|
-| Stable Top-5 | 466 | — | 0.94806 | Baseline |
-| Constrained router | 473 | +7 | 0.94977 | Useful |
-| Constrained score | **475** | **+9** | **0.95029** | Deployed |
+| Stable ranking | 466 | 0.94806 | 613 | Baseline |
+| Hard-negative Top-20 | 466 | 0.94806 | 616 | Keep for candidate boundary |
+| Constrained router | 473 | 0.94977 | 616 | Useful, not best |
+| Constrained score | **475** | **0.95029** | **616** | Selected |
 
-Hard-negative mining improved Top-20 from `613` to `616` without reducing
-Top-30 or Top-60 coverage.
+For constrained score versus stable Top-5, the query bootstrap observed `+9`
+hits, 95% interval `[1, 18]`, and `P(delta > 0) = 0.9775`. It improved 14
+queries and harmed 5 at the relevant-document level. That result was accepted
+because the aggregate raw and weighted metrics improved while Top-20/30/60
+membership stayed fixed.
 
-## Conservative swap audits
+## Conservative alternatives
 
-| Method | Before → after | Gains | Losses | Weighted effect | Decision |
-|---|---:|---:|---:|---|---|
-| Selective swap | 466 → 469 | 4 | 1 | positive raw audit | Diagnostic only |
-| Query abstention gate | 466 → 470 | 6 | 2 | uncertain | Diagnostic only |
-| V5 strict nested | 475 → 476 | 1 | 0 | non-negative | Experimental deploy |
-| Native V15 accept-all | 475 → 477 | 7 | 5 | **decreased** to 0.94161 | Rejected as safe default |
-| Segment seed expansion | 475 → 474 | 0 | 1 | decreased | Rejected |
-| V15 + segment two-head | 475 → 474 | 0 | 1 | decreased | Rejected |
+| Variant | R@5 hits | Weighted R@5 | Observation |
+|---|---:|---:|---|
+| Selective one-swap policy | 469 | 0.94859 | +3 hits over stable, but bootstrap interval included regression |
+| Query abstention gate | 470 | 0.94608 | Raw hits improved; weighted recall fell |
+| V5-lite nested swap | 474 | 0.94713 | Lost one hit and weighted recall versus constrained score |
 
-## V15 abstention audits
+These experiments illustrate why raw Recall@5 was not used alone. A policy can
+recover more documents overall while dropping a heavily weighted relevant
+document on a difficult query.
 
-The 99 original V15 swaps contained only 7 gain, 5 loss, and 87 neutral
-examples. Two gates were evaluated with the original five folds:
+## Multi-view reranking audit
 
-| Gate | Accepted | Gains | Losses | Top-5 | Weighted R@5 | Result |
-|---|---:|---:|---:|---:|---:|---|
-| Threshold gate | 24 | 2 | 3 | 474 | 0.94411 | Revert baseline |
-| Utility heads | 8 | 2 | 2 | 475 | 0.94727 | Revert baseline |
+Jina scoring used six views for every Top-60 candidate: three lexical sections
+and three dense windows. Before GPU inference, a token audit inspected 184,320
+CAL passage views. At a 768-token document cap, each view had at most 1.31% of
+passages above the cap, so the cap was accepted. The private batch workload was
+then `2,080 × 60 × 6 = 748,800` scores, checkpointed in SQLite and split across
+three machines.
 
-This was an important negative result: reducing the number of swaps did not
-make the learned gate safe. The rare losses carried disproportionately large
-weights.
+## Acceptance criteria
 
-## Document-level gold-probability audit
+A candidate policy was considered for private inference only when it met the
+following evidence threshold:
 
-A later experiment trained `P(document is relevant)` using all
-`512 × 20 = 10,240` Hard-Top-20 examples with 616 positive labels, then locked
-Top-1/2/3 and allowed only rank-6–20 candidates to replace slot 4 or 5.
+1. improve the selected baseline at Top-5;
+2. do not decrease difficulty-weighted Recall@5;
+3. inspect per-fold deltas and bootstrap uncertainty;
+4. account for both gained and lost relevant documents;
+5. preserve protected Top-20/30/60 membership;
+6. use no private labels during fitting or selection.
 
-Despite the larger training set, early outer folds lost relevant documents.
-This demonstrated that more labels alone do not solve distribution shift at a
-very narrow ranking boundary.
-
-## Evaluation principles
-
-An experiment was eligible for private deployment only if:
-
-1. Top-5 improved over 475;
-2. weighted Recall@5 did not decrease;
-3. no outer fold regressed;
-4. gained cases exceeded lost cases, preferably with zero loss;
-5. Top-20/30/60 invariants remained fixed;
-6. no private labels entered training or selection.
-
-The final verified private-benchmark run used the strongest stable policy,
-not the experiment with the largest raw offline gain.
+The purpose of these guardrails was not to guarantee leaderboard improvement;
+it was to prevent a small, noisy audit from justifying a risky ranking change.

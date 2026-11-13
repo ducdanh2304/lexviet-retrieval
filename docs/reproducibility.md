@@ -1,80 +1,70 @@
 # Reproducibility and data governance
 
-## Public versus private artifacts
+## What can be reproduced from this repository
 
-The original system archive remains private because it contains restricted
-questions and derived caches. The GitHub repository must never include:
+With Python 3.10+, a reviewer can install the package and run:
 
-- `private-official.json`, train labels, or warmup labels;
-- submission JSON/ZIP files;
-- SQLite score caches;
-- embeddings or model weights;
-- Kaggle credentials or dataset tokens;
-- raw query/document text from restricted datasets.
+```bash
+python -m pip install -e ".[api,test]"
+pytest -q
+python -m uvicorn legalir_api.app:app
+```
 
-## Frozen private archive
+This exercises:
 
-The final archive was created with:
+- reciprocal-rank fusion;
+- constrained Top-5 selection and membership preservation;
+- recall, weighted recall, and zero-hit metrics;
+- submission JSON/ZIP validation;
+- synthetic BM25 retrieval and FastAPI schemas;
+- the sanitized aggregate metrics artifact.
 
-- 538 artifacts;
-- 4,637,899,415 uncompressed bytes;
-- SHA-256 inventory for every file;
-- streamed `.tar.zst` compression;
-- split-part checksums;
-- restore verification against the artifact manifest.
+## What requires private artifacts
 
-## Reproduction levels
+The following stages are not runnable from the public repository alone:
 
-### Level A — methodology replay
+- data cleaning and the fixed research split;
+- three dense-encoder fine-tuning jobs;
+- generation of all eleven retrieval signals;
+- LightGBM selector/ranker training;
+- six-view Jina passage materialization and scoring;
+- private Top-60/20/5 inference and submission generation.
 
-Use this repository with synthetic or independently licensed data to inspect
-and rerun ranking, policy, and audit logic.
+An authorized replay requires the original corpus and labels, fold identities,
+model checkpoints, embedding/index files, Top-150 rankings, feature caches,
+Jina SQLite scores, and frozen policy bundles. The code paths described in the
+case study were preserved privately with artifact hashes, but those inputs are
+not redistributable.
 
-### Level B — cache-boundary replay
+## Aggregate evidence
 
-Authorized users provide the frozen Top-150, score caches, Jina SQLite, policy
-bundle, and query identifiers. The pipeline recreates Top-60/20/5 and audits
-without rerunning foundation models.
+[`../artifacts/cal512_metrics.json`](../artifacts/cal512_metrics.json) contains
+only public-safe aggregate values and SHA-256 identities of the source reports.
+It intentionally contains no query/document text, IDs, labels, rankings, or
+predictions.
 
-### Level C — full rebuild
-
-Authorized users additionally provide the original corpus, trained model
-checkpoints, embedding matrices, and retrieval indexes. This reconstructs all
-signals from source.
-
-## Deterministic checks
-
-Every serious run should validate:
+## Deterministic checks used in the research pipeline
 
 ```text
 query count
 candidate count and uniqueness
-expected score-row count
 fold identity
+expected passage/score row count
 Top-k membership invariants
-public/private-label usage flags
-artifact SHA-256
+label-usage flags
+upstream and output SHA-256
 submission ZIP round trip
 ```
 
-## Expected schemas
+## Data policy
 
-Ranking artifacts should expose a mapping:
+Do not commit:
 
-```json
-{
-  "documents": {
-    "question_id": ["doc_id_1", "doc_id_2"]
-  }
-}
-```
+- train, warmup, or private benchmark questions/labels;
+- raw legal corpus files unless their license explicitly permits it;
+- submission JSON/ZIP files;
+- SQLite score caches, embeddings, indexes, or model weights;
+- API keys, Kaggle credentials, or local filesystem manifests.
 
-Submission files contain exactly five unique document identifiers per query:
-
-```json
-{
-  "question_id": {
-    "answer": ["doc_1", "doc_2", "doc_3", "doc_4", "doc_5"]
-  }
-}
-```
+The repository `.gitignore` blocks common forms of these artifacts. Reviewers
+should still inspect `git status` and staged diffs before every push.
