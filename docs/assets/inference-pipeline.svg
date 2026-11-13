@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1520" viewBox="0 0 1000 1520" role="img" aria-labelledby="title desc">
+  <title id="title">Vietnamese legal retrieval inference pipeline</title>
+  <desc id="desc">A vertical pipeline from a Vietnamese legal question through eleven retrieval signals, weighted reciprocal-rank fusion, LambdaMART, six-view Jina reranking, calibrated Top-20 ranking, constrained Top-5 selection, and exact-match protection.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#475569"/>
+    </marker>
+    <style>
+      .title{font:700 25px Inter,Segoe UI,Arial,sans-serif;fill:#0f172a}
+      .stage{font:700 18px Inter,Segoe UI,Arial,sans-serif;fill:#0f172a}
+      .model{font:600 15px Inter,Segoe UI,Arial,sans-serif;fill:#1e293b}
+      .detail{font:400 14px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
+      .group{font:700 16px Inter,Segoe UI,Arial,sans-serif;fill:#334155;letter-spacing:.5px}
+      .line{fill:none;stroke:#475569;stroke-width:2.2;marker-end:url(#arrow)}
+      .merge{fill:none;stroke:#64748b;stroke-width:2}
+    </style>
+  </defs>
+
+  <rect width="1000" height="1520" fill="#f8fafc"/>
+  <text x="500" y="40" text-anchor="middle" class="title">Research batch-inference pipeline</text>
+
+  <rect x="300" y="68" width="400" height="72" rx="12" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2"/>
+  <text x="500" y="98" text-anchor="middle" class="stage">Input query</text>
+  <text x="500" y="122" text-anchor="middle" class="detail">Vietnamese legal question</text>
+
+  <path d="M500 140 V184" class="line"/>
+  <rect x="35" y="190" width="930" height="282" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="500" y="220" text-anchor="middle" class="group">11 COMPLEMENTARY RETRIEVAL SIGNALS</text>
+
+  <rect x="63" y="244" width="278" height="188" rx="12" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/>
+  <text x="202" y="275" text-anchor="middle" class="stage">Fine-tuned dense</text>
+  <text x="202" y="306" text-anchor="middle" class="model">mainguyen9/</text>
+  <text x="202" y="326" text-anchor="middle" class="model">vietlegal-harrier-0.6b</text>
+  <text x="202" y="353" text-anchor="middle" class="model">BAAI/bge-m3</text>
+  <text x="202" y="380" text-anchor="middle" class="model">bqbbao6/</text>
+  <text x="202" y="400" text-anchor="middle" class="model">vietnamese-legal-embedding</text>
+  <text x="202" y="421" text-anchor="middle" class="detail">3 document rankings</text>
+
+  <rect x="361" y="244" width="278" height="188" rx="12" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/>
+  <text x="500" y="275" text-anchor="middle" class="stage">Lexical + memory</text>
+  <text x="500" y="306" text-anchor="middle" class="model">word/bigram TF-IDF</text>
+  <text x="500" y="329" text-anchor="middle" class="detail">corpus + lexical memory</text>
+  <text x="500" y="356" text-anchor="middle" class="model">BGE-M3-FT memory</text>
+  <text x="500" y="379" text-anchor="middle" class="detail">semantic neighbours + prototypes</text>
+  <text x="500" y="406" text-anchor="middle" class="model">label prior</text>
+  <text x="500" y="426" text-anchor="middle" class="detail">5 document rankings</text>
+
+  <rect x="659" y="244" width="278" height="188" rx="12" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/>
+  <text x="798" y="275" text-anchor="middle" class="stage">Base dense + graph</text>
+  <text x="798" y="306" text-anchor="middle" class="model">bqbbao6/</text>
+  <text x="798" y="326" text-anchor="middle" class="model">vietnamese-legal-embedding</text>
+  <text x="798" y="355" text-anchor="middle" class="model">huyydangg/</text>
+  <text x="798" y="375" text-anchor="middle" class="model">DEk21_hcmute_embedding_v2</text>
+  <text x="798" y="404" text-anchor="middle" class="model">citation graph</text>
+  <text x="798" y="425" text-anchor="middle" class="detail">3 document rankings</text>
+
+  <path d="M202 432 V486 H500" class="merge"/>
+  <path d="M500 432 V486" class="merge"/>
+  <path d="M798 432 V486 H500" class="merge"/>
+  <path d="M500 486 V516" class="line"/>
+
+  <rect x="245" y="522" width="510" height="92" rx="12" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="500" y="552" text-anchor="middle" class="stage">Candidate fusion</text>
+  <text x="500" y="577" text-anchor="middle" class="model">Weighted reciprocal-rank fusion · k = 3</text>
+  <text x="500" y="599" text-anchor="middle" class="detail">fixed signal weights and depths → Top-150</text>
+
+  <path d="M500 614 V646" class="line"/>
+  <rect x="245" y="652" width="510" height="100" rx="12" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="500" y="682" text-anchor="middle" class="stage">Learned candidate selection</text>
+  <text x="500" y="708" text-anchor="middle" class="model">Two-stage LightGBM LambdaMART</text>
+  <text x="500" y="731" text-anchor="middle" class="detail">cross-fitted selector + final ranker → Stable Top-60</text>
+
+  <path d="M500 752 V784" class="line"/>
+  <rect x="245" y="790" width="510" height="100" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="500" y="820" text-anchor="middle" class="stage">Query-conditioned passage views</text>
+  <text x="500" y="846" text-anchor="middle" class="model">Fine-tuned BAAI/bge-m3</text>
+  <text x="500" y="869" text-anchor="middle" class="detail">3 lexical sections + 3 dense windows per document</text>
+
+  <path d="M500 890 V922" class="line"/>
+  <rect x="245" y="928" width="510" height="100" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="500" y="958" text-anchor="middle" class="stage">Six-view listwise reranking</text>
+  <text x="500" y="984" text-anchor="middle" class="model">jinaai/jina-reranker-v3.5</text>
+  <text x="500" y="1007" text-anchor="middle" class="detail">60-way scores · 768-token document cap</text>
+
+  <path d="M500 1028 V1060" class="line"/>
+  <rect x="245" y="1066" width="510" height="100" rx="12" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="500" y="1096" text-anchor="middle" class="stage">Calibrated hard-negative ranking</text>
+  <text x="500" y="1122" text-anchor="middle" class="model">Sigmoid-calibrated Logistic + LightGBM</text>
+  <text x="500" y="1145" text-anchor="middle" class="detail">freeze Top-30 membership → Hard Top-20</text>
+
+  <path d="M500 1166 V1198" class="line"/>
+  <rect x="245" y="1204" width="510" height="100" rx="12" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+  <text x="500" y="1234" text-anchor="middle" class="stage">Constrained-score Top-5</text>
+  <text x="500" y="1260" text-anchor="middle" class="model">18 experts + Ridge gain/loss router</text>
+  <text x="500" y="1283" text-anchor="middle" class="detail">choose 5 documents only inside Hard Top-20</text>
+
+  <path d="M500 1304 V1336" class="line"/>
+  <rect x="245" y="1342" width="510" height="92" rx="12" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+  <text x="500" y="1372" text-anchor="middle" class="stage">Exact-overlap protection</text>
+  <text x="500" y="1398" text-anchor="middle" class="model">NFKC + casefold + punctuation / whitespace normalization</text>
+  <text x="500" y="1419" text-anchor="middle" class="detail">exact labelled-query matches only</text>
+
+  <path d="M500 1434 V1462" class="line"/>
+  <rect x="320" y="1468" width="360" height="50" rx="12" fill="#0f766e"/>
+  <text x="500" y="1500" text-anchor="middle" style="font:700 18px Inter,Segoe UI,Arial,sans-serif;fill:#ffffff">Output · 5 legal document IDs</text>
+</svg>

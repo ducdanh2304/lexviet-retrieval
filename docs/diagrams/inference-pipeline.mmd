@@ -1,0 +1,24 @@
+%% Research batch-inference overview. Rendered asset: ../assets/inference-pipeline.svg
+flowchart TD
+  Q["Vietnamese legal question"]
+
+  subgraph RET["11 retrieval signals"]
+    direction LR
+    D["Fine-tuned dense encoders<br/>mainguyen9/vietlegal-harrier-0.6b<br/>BAAI/bge-m3 · bqbbao6/vietnamese-legal-embedding"]
+    M["Lexical + labelled-memory signals<br/>word/bigram TF-IDF corpus + memory<br/>BGE-M3-FT semantic memory/prototypes · label prior"]
+    G["Base dense + graph signals<br/>bqbbao6/vietnamese-legal-embedding<br/>huyydangg/DEk21_hcmute_embedding_v2 · citation graph"]
+  end
+
+  Q --> D
+  Q --> M
+  Q --> G
+  D --> RRF["Weighted reciprocal-rank fusion<br/>k = 3 · fixed weights and depths<br/>Top-150 candidates"]
+  M --> RRF
+  G --> RRF
+  RRF --> LTR["Two-stage LightGBM LambdaMART<br/>cross-fitted selector + final ranker<br/>Stable Top-60"]
+  LTR --> V["Query-conditioned passage views<br/>FT BGE-M3: 3 lexical sections + 3 dense windows<br/>6 views per document"]
+  V --> J["Listwise reranking<br/>jinaai/jina-reranker-v3.5<br/>60-way scores · 768-token document cap"]
+  J --> H["Calibrated hard-negative ranking<br/>sigmoid-calibrated Logistic + LightGBM<br/>frozen Top-30 → Hard Top-20"]
+  H --> C["Constrained-score selection<br/>18 experts + Ridge gain/loss router<br/>5 documents chosen inside Hard Top-20"]
+  C --> E["Exact-overlap protection<br/>NFKC + casefold + punctuation/space normalization<br/>exact labelled-query matches only"]
+  E --> O["Final output<br/>5 legal document IDs"]
