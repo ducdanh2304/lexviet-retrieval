@@ -1,0 +1,31 @@
+%% Offline training and artifact preparation. Rendered asset: ../assets/training-artifacts.svg
+flowchart TD
+  Q["Labelled legal questions<br/>6,985 cleaned rows"]
+  C["Legal corpus<br/>8,532 documents"]
+  S["Fixed split + collision guard<br/>2,155 evaluation · 4,823 encoder training"]
+  K["Structure-aware chunking<br/>legal hierarchy → numbered sections → paragraph fallback<br/>596,062 chunks"]
+  N["Hard-negative construction<br/>base Harrier + base BGE-M3 retrieval<br/>1 positive + 7 negatives per query"]
+
+  Q --> S
+  C --> K
+  S --> N
+  K --> N
+
+  subgraph FT["Dense encoder fine-tuning · one epoch · seed 20260904"]
+    direction LR
+    H["mainguyen9/vietlegal-harrier-0.6b<br/>fine-tuned checkpoint"]
+    B["BAAI/bge-m3<br/>fine-tuned checkpoint"]
+    L["bqbbao6/vietnamese-legal-embedding<br/>fine-tuned checkpoint"]
+  end
+
+  N --> H
+  N --> B
+  N --> L
+  H --> A["Frozen artifacts<br/>3 checkpoints · query vectors · chunk indexes"]
+  B --> A
+  L --> A
+  K --> A
+
+  S --> OOF["Five-fold OOF feature generation<br/>retrieval ranks · FT-BGE · AITeamVN/Vietnamese_Reranker · Jina scores"]
+  A --> OOF
+  OOF --> R["Frozen ranking artifacts<br/>LightGBM LambdaMART models · calibrated policies · SHA-256 manifests"]

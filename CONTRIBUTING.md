@@ -5,7 +5,8 @@ tests, and documentation.
 
 Before opening a pull request:
 
-1. run `python -m unittest discover -s tests -v`;
-2. ensure no restricted dataset content is present;
-3. do not commit model weights, score caches, submissions, or credentials;
-4. report new metrics with the split, sample count, and evaluation protocol.
+1. install `python -m pip install -e ".[api,test]"`;
+2. run `pytest -q`;
+3. ensure no restricted dataset content is present;
+4. do not commit model weights, score caches, submissions, or credentials;
+5. report new metrics with the split, sample count, and evaluation protocol.

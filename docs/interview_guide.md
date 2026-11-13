@@ -71,9 +71,10 @@ checkpoints, deterministic shards, resume support and merge validation.
 
 ### Tell me about a failed experiment.
 
-One V15 policy improved raw Top-5 hits from 475 to 477 but reduced weighted
-recall. I rejected it as the safe default. This taught me to audit the type of
-queries being lost, not only the aggregate score.
+A query-abstention policy improved raw Top-5 hits from 466 to 470 but reduced
+weighted recall from 0.94806 to 0.94608. I rejected it as the safe default.
+This taught me to audit the type of queries being lost, not only the aggregate
+score.
 
 ### Is the GitHub demo the full research model?
 

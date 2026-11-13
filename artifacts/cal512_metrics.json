@@ -1,0 +1,43 @@
+{
+  "schema": "legalir.public_metrics.v1",
+  "evaluation": {
+    "protocol": "five-fold out-of-fold",
+    "queries": 512,
+    "gold_documents": 712
+  },
+  "metrics": {
+    "stable_top5": {"cutoff": 5, "hits": 466, "recall": 0.6544943820224719, "weighted_recall": 0.9480606940252686, "zero_hit_queries": 92},
+    "stable_top20": {"cutoff": 20, "hits": 613, "recall": 0.8609550561797753, "weighted_recall": 0.9860508247653662, "zero_hit_queries": 25},
+    "hardnegative_top20": {"cutoff": 20, "hits": 616, "recall": 0.8651685393258427, "weighted_recall": 0.98645008559498, "zero_hit_queries": 25},
+    "constrained_score_top5": {
+      "cutoff": 5,
+      "hits": 475,
+      "recall": 0.6671348314606742,
+      "weighted_recall": 0.9502899003239459,
+      "zero_hit_queries": 86,
+      "delta_hits_vs_stable": 9,
+      "bootstrap_delta_hits_ci95": [1.0, 18.0],
+      "bootstrap_probability_delta_gt_zero": 0.9775
+    },
+    "stable_top60": {"cutoff": 60, "hits": 686, "recall": 0.9634831460674157, "weighted_recall": 0.99653973947668, "zero_hit_queries": 5}
+  },
+  "private_outcome": {
+    "leaderboard_score": 0.9428,
+    "reproducible_from_public_repo": false,
+    "note": "Reported competition outcome; evaluator and private labels are not public."
+  },
+  "provenance": {
+    "private_source_archive": {
+      "name": "private475_repro_sources_20260923T040706Z.tar.gz",
+      "sha256": "19f65181fd268bf9399e00c0d8c4dd006d9a5c8084ee0570300c6ffa9bed7ba1"
+    },
+    "source_reports": [
+      {"name": "stage03bg_learned_selector_rankings_oof.json", "sha256": "1f755ca2ab6716960c9e98321b433f81e733b0eb1b2953acb946a38b467a8009"},
+      {"name": "stage03ci_jina_listwise_token_audit.json", "sha256": "e45b1636aa1172b1f30930e4367f7239f4d89dec84655c70fba081edd99c8999"},
+      {"name": "stage03cr_calibrated_hardnegative_and_router_merge_oof.json", "sha256": "e92ac48b1c300a7f11090ae3ca11b6277c9c66f80ef5b1451e8db50790b92d65"},
+      {"name": "stage03ct_three_constrained_top5_audits_oof.json", "sha256": "b34d0505f762e6295037154f13f35a50ba43cd5e8b5d9ef21b2590a4f08303a7"},
+      {"name": "stage03cx_thien_v5lite_top5_nested_oof.json", "sha256": "0fff02a8265e7a95157fda49b0a700dc1107b431c07c990c57a1b0dc4da99966"}
+    ]
+  },
+  "privacy": "Aggregate values and hashes only; no restricted text, identifiers, labels, rankings, or predictions."
+}

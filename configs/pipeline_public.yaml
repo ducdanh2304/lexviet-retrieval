@@ -1,5 +1,6 @@
 project: legalir-vietnamese-legal-retrieval
-verified_private_benchmark_score: 0.9428
+reported_private_leaderboard_score: 0.9428
+private_score_reproducible_from_public_repo: false
 
 data:
   raw_labelled_queries: 7000
