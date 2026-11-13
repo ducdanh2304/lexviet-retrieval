@@ -16,10 +16,10 @@ DEFAULT_CORPUS = Path(__file__).resolve().parents[2] / "data" / "demo_corpus.jso
 engine = DemoRetrievalEngine(os.getenv("LEGALIR_CORPUS", str(DEFAULT_CORPUS)))
 
 app = FastAPI(
-    title="LegalIR Retrieval API",
+    title="LexViet Retrieval API",
     version="0.1.0",
     description=(
-        "Public deployment demo for the Vietnamese legal retrieval project. "
+        "Public API demo for LexViet — Vietnamese Legal Retrieval. "
         "The full research backend is replaced by a synthetic BM25 corpus."
     ),
 )

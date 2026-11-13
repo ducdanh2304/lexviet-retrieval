@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "legalir-portfolio"
 version = "0.1.0"
-description = "Public-safe utilities from a Vietnamese legal retrieval pipeline"
+description = "Public-safe utilities from the LexViet Vietnamese legal retrieval project"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
