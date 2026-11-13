@@ -1,4 +1,4 @@
-# Architecture and artifact lineage
+# LexViet architecture and artifact lineage
 
 The repository separates offline model preparation from research batch
 inference. The FastAPI application is a synthetic BM25 interface demo and does

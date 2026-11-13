@@ -1,6 +1,6 @@
-# Full retrieval pipeline
+# LexViet full retrieval pipeline
 
-This document describes my complete Vietnamese LegalIR research system. It is
+This document describes the complete LexViet research system. It is
 reconstructed from the preserved source code, manifests and audit reports.
 The FastAPI application in this repository is only a serving demo; it is not
 the full retrieval backend.

@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "LegalIR: High-Recall Vietnamese Legal Retrieval"
+title: "LexViet — Vietnamese Legal Retrieval"
 message: "If this repository helps your work, please cite it."
 type: software
 authors:
@@ -7,7 +7,7 @@ authors:
     given-names: "Danh Duc"
 year: 2026
 license: MIT
-repository-code: "https://github.com/ducdanh2304/vietnamese-legal-retrieval"
+repository-code: "https://github.com/ducdanh2304/lexviet-retrieval"
 abstract: >-
-  An evidence-driven multi-stage retrieval and reranking pipeline for
+  An evidence-driven multi-stage retrieval and reranking project for
   Vietnamese legal information retrieval.

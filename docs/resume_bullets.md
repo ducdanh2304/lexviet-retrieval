@@ -2,7 +2,7 @@
 
 ## English
 
-- Built a multi-stage Vietnamese legal retrieval system combining 11-signal
+- Designed and integrated LexViet, a multi-stage Vietnamese legal retrieval system combining 11-signal
   weighted RRF, LightGBM LambdaMART, fine-tuned legal embeddings, and six-view
   transformer reranking; recorded a **0.9428 private leaderboard score** on
   2,080 questions.
